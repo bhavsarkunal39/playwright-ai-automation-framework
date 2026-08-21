@@ -1,0 +1,50 @@
+{
+    "windsurf.mcpServers": {
+        "accelyapybot-ai": {
+            "command": "python",
+            "args": [
+                "-m",
+                "MCP.server"
+            ]
+        }
+    },
+    "python.envFile": "${workspaceFolder}/.env",
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}"
+    ],
+    "files.exclude": {
+        "**/encryptDecrypt.py": true,
+        "**/*.pyc": true,
+        "**/.pytest_cache": true,
+        ".env": true,
+        ".gitignore": true,
+        "conftest.py": true,
+        "get-pip.py": true,
+        "sitecustomize.py": true,
+        "**/pytest.ini":true,
+        "**/__init__.py": true,
+        "**/__pycache__": true,
+        "**/.vscode": true,
+        "**/Utility": true,
+        "setup.py": true,
+        "requirements.txt": true,
+        "**/.gitkeep": true,
+        "**/AccelyaPybot.egg-info": true,
+        "build": true,
+        "**/build": true,
+        "**/.env": true,
+        "**/.gitignore": true,
+        "**/conftest.py": true,
+        "**/get-pip.py": true,
+        "**/sitecustomize.py": true,
+        "**/setup.py": true,
+        "**/requirements.txt": true,
+        "**/MANIFEST.in": true,
+        "**/projectVariables.py": true,
+        "**/apiRequest.py": true,
+        "**/exceptionLog.py":true,
+        "**/reporting":true,
+        "Suite/core": true
+    }
+}

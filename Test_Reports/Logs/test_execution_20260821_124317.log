@@ -1,0 +1,22 @@
+2026-08-21 12:43:17,760 - INFO - Logging system initialized successfully
+2026-08-21 12:43:17,762 - INFO - Log file will be saved to: Test_Reports\Logs\test_execution_20260821_124317.log
+2026-08-21 12:43:17,801 - WARNING - Database connection could not be established. Continuing automation execution.
+2026-08-21 12:43:34,016 - INFO - Session start
+2026-08-21 12:43:34,016 - INFO - Headless mode: False
+2026-08-21 12:43:36,148 - INFO - Chromium browser launched.
+2026-08-21 12:43:36,153 - INFO - Page setup
+2026-08-21 12:43:37,524 - INFO - Started test: Sample Testcase1
+2026-08-21 12:43:41,268 - INFO - Step 1 - INFO: Navigated to Google.com
+2026-08-21 12:43:43,554 - INFO - Step 2 - INFO: Full Page Screenshot
+2026-08-21 12:43:45,762 - INFO - Step 3 - PASS: Trial testcase status Pass
+2026-08-21 12:43:45,775 - INFO - Ending test: Sample Testcase1 at 2026-08-21 12:43:45.775706, Duration: 0:00:08.251621
+2026-08-21 12:43:45,777 - INFO - Test completed: Sample Testcase1
+2026-08-21 12:43:45,777 - INFO - Test case ended
+2026-08-21 12:43:45,858 - INFO - Page closed
+2026-08-21 12:43:46,333 - INFO - Session end
+2026-08-21 12:43:46,387 - INFO - Report generated successfully: Test_Reports\ExtentReports\TestExecutionReport_20260821_124346.html
+2026-08-21 12:43:46,388 - INFO - Extent report generated
+2026-08-21 12:43:46,395 - INFO - pytest_sessionfinish(): Performing profile encryption cleanup.
+2026-08-21 12:43:46,404 - INFO - pytest_sessionfinish(): Encrypted the Profile DEFAULT
+2026-08-21 12:43:46,405 - INFO - Cleaning up __pycache__ directories
+2026-08-21 12:43:46,784 - INFO - Successfully deleted all __pycache__ directories

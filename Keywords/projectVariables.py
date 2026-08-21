@@ -1,0 +1,21 @@
+import os
+project_root = os.getcwd()
+product="PROJECT"
+browser="chrome"
+profile="DEFAULT" 
+headless = "N"
+iss_airline_code = "123"     #added for feature of masking by default values.
+user_name = "uName"     #added for feature of masking by default values.
+mask_bydefault_enabled = "N"   #Y/N - To enable masking by default values like username, airline code, etc. in screenshots.
+profilePath= os.path.join(project_root, "Profiles", "Environments")
+report_path="Test_Reports"
+generate_report_enabled="Y"
+generate_log_file="Y"
+connect_OtherDB="N"
+otherDB_path=os.path.join(project_root, "OtherDB", "OtherDB.db")
+exit_handler = False
+slow_motion = 50
+default_timeout=30000
+default_navigation_timeout=45000
+record_video="N"
+start_time = None

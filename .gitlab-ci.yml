@@ -1,0 +1,137 @@
+stages:
+  - test
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.pip-cache"
+  PLAYWRIGHT_VERSION: "v1.59.0-jammy"
+  DOCKER_IMAGE: "mcr.microsoft.com/playwright/python:$PLAYWRIGHT_VERSION"
+  # CI/CD Override Variables (GitLab UI only when needed to override RunTestsuite.py)
+  PARALLEL_RUN:
+    value: ""
+    options:
+      - ""
+      - Y
+      - N
+    description: 'Specify the parallel run as Y or N'
+  PROFILE:
+    value: ""
+    description: 'Specify the test profile as EKDEV,EKDET..etc'
+  BROWSER:
+    value: ""
+    options:
+      - ""
+      - chromium
+      - firefox
+      - edge
+    description: 'Specify the browser as chromium,firefox,edge'
+  MARKERS:
+    value: ""
+    description: 'Specify Testcases markers name which need to be executed in Suite as ["val1","val2"]'
+  PRODUCT:
+    value: ""
+    description: 'Specify the product'
+  RECORD_VIDEO:
+    value: ""
+    options:
+      - ""
+      - Y
+      - N
+    description: 'Specify whether to record video as Y or N'
+  PARALLEL_SUITE_CONFIG:
+    value: ""
+    description: 'Specify the parallel suite config as JSON string e.g. [{"profile":"WSDEV","markers":["test_ReveraTC"],"browser":["chrome"]}]'
+  # CI/CD FORCED Settings (cannot be overridden)
+  HEADLESS_MODE: "Y"
+  GENERATE_REPORT: "Y"
+  GENERATE_LOG_FILE: "Y"
+
+services:
+  - docker:dind
+ 
+cache:
+  key: playwright-browsers-$PLAYWRIGHT_VERSION
+  paths:
+    - .pip-cache/
+    - ~/.cache/ms-playwright/
+ 
+qa_tests:
+  stage: test
+  image: $DOCKER_IMAGE
+  tags:
+    - dind-pra-qa-automation
+  before_script:
+    - export DEBIAN_FRONTEND=noninteractive
+    - export TZ=UTC
+    - export LD_LIBRARY_PATH=/opt/instantclient_19_23:$LD_LIBRARY_PATH
+    - export PATH=/opt/instantclient_19_23:$PATH
+    - cd $CI_PROJECT_DIR/accelyapybot
+    - python -V
+    - apt-get -q update && apt-get install -y --no-install-recommends wget unzip libaio1 pkg-config default-libmysqlclient-dev python3-tk build-essential
+    - |
+      if [ ! -f "/opt/instantclient_19_23/libclntsh.so" ]; then
+        wget -q https://download.oracle.com/otn_software/linux/instantclient/1923000/instantclient-basic-linux.x64-19.23.0.0.0dbru.zip
+        unzip -q instantclient-basic-linux.x64-19.23.0.0.0dbru.zip -d /opt/
+        echo "/opt/instantclient_19_23" > /etc/ld.so.conf.d/oracle-instantclient.conf
+        ldconfig
+      fi
+    - python -m pip install --upgrade pip
+    - pip install -r requirements.txt --cache-dir $PIP_CACHE_DIR
+    - playwright install --with-deps
+  script:
+    - pwd
+    - cp ./Suite/RunTestsuite.py ./Suite/RunTestsuite.py.original
+    - |
+      # Extract primary values from RunTestsuite.py (safe parsing)
+      eval "$(grep -E '^(parallel_run|product|default_profile|default_browser|record_video)=' ./Suite/RunTestsuite.py | \
+             sed 's/parallel_run="\([YN]\)"/RUNTESTSUITE_PARALLEL=\1/' | \
+             sed 's/product = "\([^"]*\)"/RUNTESTSUITE_PRODUCT=\1/' | \
+             sed 's/default_profile\s*=\s*"\([^"]*\)"/RUNTESTSUITE_PROFILE=\1/' | \
+             sed 's/default_browser\s*=\s*"\([^"]*\)"/RUNTESTSUITE_BROWSER=\1/' | \
+             sed 's/record_video="\([YN]\)"/RUNTESTSUITE_VIDEO=\1/')"
+      export PARALLEL_RUN="${PARALLEL_RUN:-$RUNTESTSUITE_PARALLEL}"
+      export PRODUCT="${PRODUCT:-$RUNTESTSUITE_PRODUCT}"
+      export PROFILE="${PROFILE:-$RUNTESTSUITE_PROFILE}"
+      export BROWSER="${BROWSER:-$RUNTESTSUITE_BROWSER}"
+      export RECORD_VIDEO="${RECORD_VIDEO:-$RUNTESTSUITE_VIDEO}"
+      # Export PARALLEL_SUITE_CONFIG if provided from GitLab UI
+      if [ -n "$PARALLEL_SUITE_CONFIG" ]; then
+        export PARALLEL_SUITE_CONFIG="$PARALLEL_SUITE_CONFIG"
+        echo "Using parallel suite config from GitLab CI/CD variable"
+      fi
+      # CI/CD forced settings
+      export HEADLESS_MODE="Y"
+      export GENERATE_REPORT="Y"
+      export GENERATE_LOG_FILE="Y"
+      # Apply forced settings to RunTestsuite.py
+      sed -i -e 's/headless_mode="[YN]"/headless_mode="Y"/' \
+             -e 's/generate_report="[YN]"/generate_report="Y"/' \
+             -e 's/generate_log_file="[YN]"/generate_log_file="Y"/' ./Suite/RunTestsuite.py
+    - python ./Suite/RunTestsuite.py || true
+    - |
+      # If RunTestsuite doesn't create junit, run pytest explicitly (safe fallback)
+      if [ ! -d Test_Reports ] || [ -z "$(ls Test_Reports 2>/dev/null)" ]; then
+        mkdir -p Test_Reports
+        python -m pytest --junitxml=Test_Reports/report.xml || true
+      fi
+    - |
+      # Copy artifacts to project root for GitLab to find them
+      if [ -d Test_Reports ]; then
+        cp -r Test_Reports/ $CI_PROJECT_DIR/
+      fi
+      if [ -f pytest_output.log ]; then
+        cp pytest_output.log $CI_PROJECT_DIR/
+      fi
+    - python Suite/core/check_test_xml_results.py
+  artifacts:
+    when: always
+    paths:
+      - Test_Reports/
+      - pytest_output.log
+    reports:
+      junit: Test_Reports/JUnit_Reports/*.xml
+    expire_in: 1 week
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "main"'
+      when: always

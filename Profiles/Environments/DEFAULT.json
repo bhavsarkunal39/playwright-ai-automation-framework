@@ -1,0 +1,22 @@
+{
+    "browser": "chrome",
+    "url": "www.google.com",
+    "app_username": "admin",
+    "app_password": "gAAAAABqh_qqTp0A7h9X38xxKiT50BUMgCqL9FtSWBbSqBDCQ17Pki7JuuyULDrGa_Jfyc85y2uR-T4-bhgjib9uYv9LrfzM5_5i1qjIfZG2s4DCIH-q3lbPa5x41k6pxw8yK559WLw9N2OCFpoUOJmOj0TjMSli-8AvueJiCjV1NqYtGg1yeTo7qkYJn6tI6lePweGBRR-aMU6fGg2VJ1oJ10Q7o4XIPA==",
+    "dbType": "oracle",
+    "host": "10.11.12.123",
+    "port": "1021",
+    "dbusername": "TEST_DB",
+    "dbpassword": "gAAAAABqh_qq9SAvnKNC7Yq4Y_3eZYLOPmuzZuLTZ95RtK_SjZWaiFN8m0qNkYmDmmbIBTN8Hqm1bBtxDTQ1GhEIjsGg0TH1oJNNOiGHvdAUMpWa_YTOODnQ-AhEG4wLBJXVhqc4_3aRgEkQmzporFkZ_KSCc-CGlTXKcaQ3P6g9-CLC6o_OQ0-8sbS6UhZh3E-MCfTuwGMq4pmKTAADLgPI91xiT34kgw==",
+    "dbName": "TEST_DB",
+    "SSH_SERVER_IP": "10.191.7.2",
+    "SSH_USERNAME": "TEST_SSH",
+    "SSH_PASSWORD": "gAAAAABqh_qqwzBUarbTFajL-qWMSYUyxJMu6_kowrtuOhBKYHlxg96myA1Q0Tu4aBm6pLnTVyFJ3zrLlAbyGfRAiqtP8YDJHuZ0UjxfRtWJyMSS_3f1UuGqzpakYJ6OB5KzLo8Ak0u21THZJWq6zdrO7LH2jAUuTpmeYTBw3ELtG4jUATmGNMx8r4lZc8wgwUXdBEsfRBABhDBLKQG2PjaC_pI82QEQPQ==",
+    "sftp_username": "TEST_SFTP",
+    "sftp_password": "gAAAAABqh_qqYA14_vUvbD8PsZZci_A1M8UFU_camM9JJ4KDrXiMYoaYoYbU2ankyRODeEAQMZ2aJINuSPjomvxk-OgQACNDq4ocgc5cgzauufR3vSpUO7_zgJm2tXoAdTASif3cDhRaIKJrROCFTVTf7iznsaOKV7gjKehqm4WQuiXYaTCrY0wl2O9DBOAV4VPP2Y42NxXJFQSYQ_7dR6GIfpGO7NrymQ==",
+    "SFTP_Server": "10.193.6.1",
+    "SWO_Enabled": "None",
+    "PostURL": "None",
+    "CCB_OWNER_User_Name": "ccb_test",
+    "CCB_OWNER_Password": "gAAAAABqh_qqLwheXxyWQz9SpuVrdfTs-bluUKdqI59l167SLmMUpVs6yF6vw-Za70sVJDzPxSk0-_DZAd3M7P3Hvtj_h_3Iq1ojRMfxzLNcO4A-Y4cTrh-mxu8KFE4KJEjy3yegJ3W56Z7xeehnwDtrX4IXoFJ8bTnL0wE2EsBttFpfUMkeqhwwGF6xc71Bxs8rWXkQcDx2tLvOg237noB2-p0hajJrWQ=="
+}

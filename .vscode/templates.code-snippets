@@ -1,0 +1,156 @@
+{
+	// Place your Automan workspace snippets here. Each snippet is defined under a snippet name and has a scope, prefix, body and 
+	// description. Add comma separated ids of the languages where the snippet is applicable in the scope field. If scope 
+	// is left empty or omitted, the snippet gets applied to all languages. The prefix is what is 
+	// used to trigger the snippet and the body will be expanded and inserted. Possible variables are: 
+	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. 
+	// Placeholders with the same ids are connected.
+	// Example:
+	// "Print to console": {
+	// 	"scope": "javascript,typescript",
+	// 	"prefix": "log",
+	// 	"body": [
+	// 		"console.log('$1');",
+	// 		"$2"
+	// 	],
+	// 	"description": "Log output to console"
+	// }
+
+		"Python UI Test Case Template": {			
+			"prefix": "import UI template",
+			"body": [
+				"import logging as log",
+				"import pytest",
+				"from Keywords.PROJECT.FileName import className",
+				"from Keywords.apiRequest import APIrequest",
+				"import Object_Repository.mainlocator as path",
+				"'''",
+				"For custom keywords use 'customKey.' eg. customKey.login() and for Revera Function keywords use 'functionKey.'",
+				"For API keywords use 'apiKey.' eg. apiKey.api_get() , apiKey.api_post() etc.",
+				"For playwright keywords use 'page.' ,eg. page.click()",
+				"'''",
+				"@pytest.mark.${TM_FILENAME_BASE}",
+				"@pytest.mark.order(1)",
+				"def ${TM_FILENAME_BASE}(report,page):",
+    			"    customKey = className(page,report)",
+				"    apiKey = APIrequest()",
+				"    report.set_page(page)",
+				"    testcase_name = \"Enter Testcase Name\"",
+				"    testcase_description = \"Enter the Testcase Description\"",
+				"    marker_name = \"${TM_FILENAME_BASE}\"",
+				"    report.start_test(testcase_name, testcase_description, marker_name)",								
+    			"    #Start writing test cases from below line.",
+				"    "
+			],
+			"description": "Automatically adds Testcase template with required modules imported new test cases."
+		},
+
+		"Python DB Test Case Template": {			
+			"prefix": "import DB template",
+			"body": [
+				"import logging as log",
+				"import pytest",
+				"from Keywords.PROJECT.FileName import className",
+				"from Keywords.apiRequest import APIrequest",
+				"import Object_Repository.mainlocator as path",
+				"'''",
+				"For custom keywords use 'customKey.' eg. customKey.connect_database()",
+				"For API keywords use 'apiKey.' eg. apiKey.api_get() , apiKey.api_post() etc.",
+    			"For playwright keywords use 'page.' ,eg. page.click()",
+				"'''",
+				"@pytest.mark.${TM_FILENAME_BASE}",
+				"@pytest.mark.order(1)",
+				"def ${TM_FILENAME_BASE}(report):",
+    			"    customKey = className(report=report)",
+				"    apiKey = APIrequest()",
+				"    testcase_name = \"Enter Testcase Name\"",
+				"    testcase_description = \"Enter the Testcase Description\"",
+				"    marker_name = \"${TM_FILENAME_BASE}\"",
+				"    report.start_test(testcase_name, testcase_description, marker_name)",
+				"    #Start writing test cases from below line.",
+				"    "
+			],
+			"description": "Automatically adds Testcase template with required modules imported new test cases."
+		},
+
+		"Python API Test Case Template": {			
+			"prefix": "import API template",
+			"body": [
+				"import logging as log",
+				"import pytest",
+				"from Keywords.apiRequest import APIrequest",
+				"import Object_Repository.mainlocator as path",
+				"'''",
+				"For API keywords use 'apiKey.' eg. apiKey.api_get() , apiKey.api_post() etc.",
+    			"For playwright keywords use 'page.' ,eg. page.click()",
+				"'''",
+				"@pytest.mark.${TM_FILENAME_BASE}",
+				"@pytest.mark.order(1)",
+				"def ${TM_FILENAME_BASE}(report):",
+				"    apiKey = APIrequest()",
+				"    testcase_name = \"Enter Testcase Name\"",
+				"    testcase_description = \"Enter Testcase Description\"",
+				"    marker_name = \"${TM_FILENAME_BASE}\"",
+				"    report.start_test(testcase_name, testcase_description, marker_name)",
+				"    #Start writing test cases from below line.",
+				"    "
+			],
+			"description": "Automatically adds Testcase template with required modules imported new test cases."
+		},
+
+		"Python Suite Template":{
+			"prefix": "import Marker Suite",
+			"body": [
+				"generate_report=\"N\"",
+				"generate_log_file=\"N\"",
+				"headless_mode=\"N\"",
+				"#------------------------------------------------------------------------------------------",
+				"#------------Enter Product name below: PRA, CRA etc---------",
+				"product=\"PROJECT\"",
+				" ",
+				"#------------Enter browser name below: chrome, etc---------",
+				"browser=\"chrome\"",
+				" ",
+				"#------------Enter Profile name below: EKDEV,EKDET..etc (Make sure profile exists)----",
+				"profile=\"DEFAULT\"",
+				" ",
+				"#------------Enter Testcases Marker name below which need to be executed in Suite-----",
+				"markers = [\"test_demo\"]",
+				" ",
+				"#------------------------------------------------------------------------------------------",
+				"#------------------------------------------------------------------------------------------",
+				" ",
+				" ",
+				" ",
+				" ",
+				" ",
+				"if __name__ == \"__main__\":",
+				"   import os",
+				"   import sys",
+				"   project_root = os.getcwd()",
+				"   sys.path.append(project_root)",
+				"   import pytest",
+				"   import Keywords.projectVariables as var",
+				"   import logging as log",
+				"   #-----------------------------------------------------",
+				"   var.product = product",
+				"   var.browser = browser",
+				"   var.profile = profile",
+				"   var.generate_report_enabled= generate_report",
+				"   var.generate_log_file= generate_log_file",
+				"   var.headless = headless_mode.upper()",
+				"   try:",
+				"       pytest.main([",
+				"           \"--log-cli-level=INFO\",",
+				"           \"-m\", \" or \".join(markers),",
+				"           \"--disable-pytest-warnings\",",
+				"           \"-q\"",
+				"       ])",
+				"   except Exception as e:",
+				"       log.error(f\"Error occurred while running tests using Markers: {e}\")",
+				"   #---------------------------------------------------------------------------",
+
+			],
+			"description": "Automatically adds Suite template on creating new Suite."
+		}
+}

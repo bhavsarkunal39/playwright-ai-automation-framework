@@ -1,0 +1,11 @@
+# Python related
+__pycache__/
+.pytest_cache
+# Virtual Environment
+venv/
+env/
+.venv/
+.env/
+# Test artifacts
+accelya-py-bot/Screenshots
+accelya-py-bot/Test_Reports

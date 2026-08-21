@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Automated Test Execution Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+      .test-case-content {
+        display: none;
+      }
+      .test-case-content.active {
+        display: block;
+      }
+      .screenshot-container {
+        max-height: 80vh;
+        overflow: auto;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.375rem;
+        margin-top: 0.5rem;
+        background-color: #f8fafc;
+        padding: 0.5rem;
+      }
+      .screenshot-container img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+      }
+      .full-page-screenshot {
+        width: 100%;
+      }
+      .filter-dropdown {
+        transition: all 0.3s ease;
+      }
+      .filter-section {
+        background: linear-gradient(to right, #f8fafc, #f1f5f9);
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+      .filter-btn {
+        transition: background-color 0.2s ease, transform 0.1s ease;
+      }
+      .filter-btn:hover {
+        transform: scale(1.05);
+      }
+      .chart-container {
+        position: relative;
+        height: 300px;
+        margin: 1rem 0;
+      }
+      .chart-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 2rem;
+        margin: 2rem 0;
+      }
+      .chart-card {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e5e7eb;
+      }
+
+      .chart-container canvas {
+        width: 100% !important;
+        height: 100% !important;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 font-sans min-h-screen">
+    <div class="container mx-auto p-6 max-w-7xl">
+      <div class="flex items-center justify-between mb-8 relative px-4">
+        <!-- Logo -->
+        <div class="flex-shrink-0 mr-4">
+          <img src="../../Keywords/reporting/templates/assets/img/QA_automation.svg" 
+              alt="Automation Logo" 
+              class="h-10 md:h-12"> <!-- Smaller on mobile -->
+        </div>
+        
+        <!-- Heading -->
+        <div class="absolute left-0 right-0 text-center">
+          <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text inline-block max-w-xs sm:max-w-sm md:max-w-xl mx-auto">
+            Automated Test Execution Report
+          </h1>
+        </div>
+      </div>
+
+      <!-- Filter Section -->
+      <div class="filter-section p-4 mb-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-3">Filters</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Status</label
+            >
+            <select
+              id="statusFilter"
+              class="filter-dropdown w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">All</option>
+              <option value="PASS">Passed</option>
+              <option value="FAIL">Failed</option>
+            </select>
+          </div>
+          <!-- Marker dropdown: show marker or testcase name if marker is empty or 'General' -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Marker</label>
+            <select
+              id="markerFilter"
+              class="filter-dropdown w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">All</option>
+              {% for marker in unique_markers %}
+              <option value="{{ marker }}">{{ marker }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="flex items-end">
+            <button
+              id="applyFilters"
+              class="filter-btn w-full bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              Apply Filters
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col lg:flex-row gap-6">
+        <!-- Sidebar Navigation -->
+        <div class="w-full lg:w-1/4">
+          <div
+            class="bg-white shadow-lg rounded-xl p-5 sticky top-6 border border-gray-200"
+          >
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+              <span class="mr-2">🧭</span> Navigation
+            </h2>
+            <ul class="space-y-2" id="nav-buttons">
+              <li>
+                <button
+                  data-target="summary"
+                  class="nav-btn w-full text-left px-4 py-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors duration-200 flex items-center gap-2"
+                >
+                  <span class="text-lg">📊</span>
+                  <span class="text-sm font-medium truncate">Summary</span>
+                </button>
+              </li>
+              {% for tc in test_cases %}
+              <li
+                class="test-case-nav"
+                data-status="{{ 'PASS' if tc.results.FAIL == 0 else 'FAIL' }}"
+                data-marker="{{ tc.marker if tc.marker and tc.marker != 'General' else tc.name }}"
+                data-pass-rate="{{ tc.pass_rate }}"
+              >
+                <button
+                  data-target="test-case-{{ tc.safe_name }}"
+                  class="nav-btn w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors duration-200 flex items-center gap-2"
+                >
+                  <span
+                    class="w-[1.6rem] text-center text-[10px] font-semibold {% if tc.results.FAIL == 0 %} bg-green-500 text-white {% else %} bg-red-500 text-white {% endif %}"
+                  >
+                    {{ 'PASS' if tc.results.FAIL == 0 else 'FAIL' }}
+                  </span>
+
+                  <span class="text-sm font-medium truncate"
+                    >{{ tc.name }}</span
+                  >
+                </button>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="w-full lg:w-3/4">
+          <!-- Summary Section -->
+          <div
+            class="bg-white shadow-lg rounded-xl p-6 mb-6 border border-gray-200"
+            id="summary"
+          >
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+              <span class="mr-2">📋</span> Overall Test Execution Summary
+            </h2>
+
+            <!-- Stats Cards -->
+            <div
+              class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6 text-center"
+            >
+              <div
+                class="bg-green-50 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+              >
+                <p class="text-3xl font-bold text-green-600">
+                  {{ overall_test_results.PASS }}
+                </p>
+                <p class="text-gray-700">Passed</p>
+              </div>
+              <div
+                class="bg-red-50 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+              >
+                <p class="text-3xl font-bold text-red-600">
+                  {{ overall_test_results.FAIL }}
+                </p>
+                <p class="text-gray-700">Failed</p>
+              </div>
+              <div
+                class="bg-gray-50 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+              >
+                <p class="text-3xl font-bold text-gray-600">
+                  {{ total_test_cases }}
+                </p>
+                <p class="text-gray-700">Total Tests</p>
+              </div>
+              <div
+                class="bg-purple-50 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+              >
+                <p class="text-3xl font-bold text-purple-600">
+                  {{ pass_rate }}%
+                </p>
+                <p class="text-gray-700">Pass Rate</p>
+              </div>
+            </div>
+
+          <!-- Charts Section -->
+          <div class="chart-grid">
+            <!-- Pass/Fail Pie Chart -->
+            <div class="chart-card">
+              <h3 class="text-lg font-semibold text-gray-800 mb-3 text-center">
+                Test Results Distribution
+              </h3>
+              <div class="chart-container">
+                <canvas id="passFailChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Test Execution Details -->
+          <div class="text-gray-700 space-y-2 bg-gray-50 p-4 rounded-lg mt-6">
+              <p><strong>Author:</strong> {{ author }}</p>
+              <p><strong>Start Time:</strong> {{ overall_start_time }}</p>
+              <p><strong>End Time:</strong> {{ overall_end_time }}</p>
+              <p><strong>Duration:</strong> {{ overall_duration }}</p>
+            </div>
+          </div>
+
+          <!-- Test Cases -->
+          {% for tc in test_cases %}
+          <div class="test-case-content" id="test-case-{{ tc.safe_name }}">
+            <div
+              class="bg-white shadow-lg rounded-xl p-6 mb-6 border border-gray-200"
+            >
+              <h2
+                class="text-2xl font-bold text-gray-800 mb-4 flex items-center"
+              >
+                <span
+                    class="mr-2 w-[1.6rem] text-center text-[10px] font-semibold {% if tc.results.FAIL == 0 %} bg-green-500 text-white {% else %} bg-red-500 text-white {% endif %}"
+                >
+                  {{ 'PASS' if tc.results.FAIL == 0 else 'FAIL' }}
+                </span>
+                {{ tc.name }}
+              </h2>
+              <div class="mb-4 bg-gray-50 p-3 rounded-lg">
+                <p class="text-gray-700 break-words whitespace-pre-line"></p>
+                <p class="text-gray-700 break-words">
+                  <!--<strong>Description:</strong> {{ tc.description }}-->
+                  <strong>Description:</strong> {{ tc.description.replace('\n', '<br>').replace('&​#10;', '<br>') | safe }}
+                </p>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="bg-gray-50 p-3 rounded-lg">
+                  <p class="text-gray-700">
+                    <strong>Marker:</strong> {{ tc.marker if tc.marker and tc.marker != 'General' else tc.name }}
+                  </p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-lg">
+                  <p class="text-gray-700">
+                    <strong>Start Time:</strong> {{ tc.start_time }}
+                  </p>
+                  <p class="text-gray-700">
+                    <strong>End Time:</strong> {{ tc.end_time }}
+                  </p>
+                  <p class="text-gray-700">
+                    <strong>Duration:</strong> {{ tc.duration }}
+                  </p>
+                  <p class="text-gray-700">
+                    <strong>Pass Rate:</strong> {{ tc.pass_rate }}%
+                  </p>
+                </div>
+              </div>
+              <div class="grid grid-cols-5 gap-2 mb-6 text-center text-xs">
+                <div
+                  class="bg-green-50 p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <p class="text-lg font-bold text-green-600">
+                    {{ tc.results.PASS }}
+                  </p>
+                  <p class="text-gray-700">Pass</p>
+                </div>
+                <div
+                  class="bg-red-50 p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <p class="text-lg font-bold text-red-600">
+                    {{ tc.results.FAIL }}
+                  </p>
+                  <p class="text-gray-700">Fail</p>
+                </div>
+                <div
+                  class="bg-yellow-50 p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <p class="text-lg font-bold text-yellow-600">
+                    {{ tc.results.SKIP }}
+                  </p>
+                  <p class="text-gray-700">Skip</p>
+                </div>
+                <div
+                  class="bg-blue-50 p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <p class="text-lg font-bold text-blue-600">
+                    {{ tc.results.INFO }}
+                  </p>
+                  <p class="text-gray-700">Info</p>
+                </div>
+                <div
+                  class="bg-orange-50 p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <p class="text-lg font-bold text-orange-600">
+                    {{ tc.results.WARNING }}
+                  </p>
+                  <p class="text-gray-700">Warn</p>
+                </div>
+              </div>
+
+              <div class="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+                {% for step in tc.steps %}
+                <div
+                  class="border-l-4 border-{{ step.color }}-500 pl-4 py-3 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <p class="text-{{ step.color }}-600 font-semibold">
+                    {{ step.status }}
+                  </p>
+                  <p class="text-gray-800">{{ step.message | safe }}</p>
+                  {% if step.screenshot_data %}
+                  <div class="mt-2">
+                    <button
+                      onclick="toggleScreenshot('screenshot-{{ tc.safe_name }}-{{ step.step_number }}')"
+                      class="bg-blue-600 hover:bg-blue-800 text-white font-bold py-1 px-4 rounded-lg text-sm transition-colors"
+                    >
+                      View Screenshot
+                    </button>
+                    <div
+                      id="screenshot-{{ tc.safe_name }}-{{ step.step_number }}"
+                      class="screenshot-container hidden"
+                    >
+                      <img
+                        src="data:image/png;base64,{{ step.screenshot_data }}"
+                        class="{% if step.is_full_page %}full-page-screenshot{% endif %}"
+                        alt="Step Screenshot"
+                      />
+                    </div>
+                  </div>
+                  {% endif %}
+                  <p class="text-gray-500 text-sm mt-2">
+                    Step {{ step.step_number }} - {{ step.timestamp }}
+                  </p>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function toggleScreenshot(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.toggle('hidden');
+        if (!el.classList.contains('hidden')) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+
+      // Chart configurations and data
+      const chartColors = {
+        primary: '#3B82F6',
+        success: '#10B981',
+        danger: '#EF4444',
+        warning: '#F59E0B',
+        info: '#06B6D4',
+        secondary: '#6B7280'
+      };
+
+      let passFailChart = null;
+
+      function createCharts() {
+        const stats = calculateFilteredStats();
+  
+        // Destroy previous charts if they exist
+        if (passFailChart) {
+          passFailChart.destroy();
+        }
+        // Pass/Fail Pie Chart
+        const passFailCtx = document.getElementById('passFailChart').getContext('2d');
+        passFailChart = new Chart(passFailCtx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Passed', 'Failed'],
+            datasets: [{
+              data: [stats.pass, stats.fail],
+              backgroundColor: [chartColors.success, chartColors.danger],
+              borderWidth: 2,
+              borderColor: '#ffffff'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: {
+                  padding: 20,
+                  usePointStyle: true
+                }
+              }
+            }
+          }
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const buttons = document.querySelectorAll('.nav-btn');
+        const allSections = document.querySelectorAll('.test-case-content, #summary');
+        const testCaseNavs = document.querySelectorAll('.test-case-nav');
+        const statusFilter = document.getElementById('statusFilter');
+        const markerFilter = document.getElementById('markerFilter');
+        const applyFilters = document.getElementById('applyFilters');
+
+        function showContent(id) {
+          allSections.forEach(section => section.style.display = 'none');
+          const target = document.getElementById(id);
+          if (target) target.style.display = 'block';
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+
+          buttons.forEach(btn => {
+            btn.classList.remove('bg-blue-50', 'hover:bg-blue-100');
+            btn.classList.add('bg-gray-50', 'hover:bg-gray-100');
+          });
+
+          const activeBtn = [...buttons].find(btn => btn.dataset.target === id);
+          if (activeBtn) {
+            activeBtn.classList.add('bg-blue-50', 'hover:bg-blue-100');
+            activeBtn.classList.remove('bg-gray-50', 'hover:bg-gray-100');
+          }
+
+          // Initialize charts when summary is shown
+          if (id === 'summary') {
+            setTimeout(createCharts, 100);
+          }
+        }
+
+        function applyFilter() {
+          const status = statusFilter.value;
+          const marker = markerFilter.value;
+
+          testCaseNavs.forEach(nav => {
+            const navStatus = nav.dataset.status;
+            const navMarker = nav.dataset.marker;
+
+            let statusMatch = status === 'all' || status === navStatus;
+            let markerMatch = marker === 'all' || marker === navMarker;
+
+            nav.style.display = (statusMatch && markerMatch) ? 'block' : 'none';
+          });
+
+          // Update the summary with filtered data
+          updateSummaryDisplay();
+
+          // Show summary if no test cases match
+          const visibleNavs = Array.from(testCaseNavs).filter(nav => nav.style.display !== 'none');
+          if (visibleNavs.length === 0) showContent('summary');
+        }
+
+        buttons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.dataset.target;
+            showContent(id);
+          });
+        });
+
+        applyFilters.addEventListener('click', applyFilter);
+
+        showContent('summary');
+      });
+
+      function calculateFilteredStats() {
+        const statusFilter = document.getElementById('statusFilter').value;
+        const markerFilter = document.getElementById('markerFilter').value;
+        
+        let filteredPass = 0;
+        let filteredFail = 0;
+        let filteredTotal = 0;
+        
+        document.querySelectorAll('.test-case-nav').forEach(nav => {
+          const navStatus = nav.dataset.status;
+          const navMarker = nav.dataset.marker;
+          const passRate = parseFloat(nav.dataset.passRate);
+          
+          const statusMatch = statusFilter === 'all' || statusFilter === navStatus;
+          const markerMatch = markerFilter === 'all' || markerFilter === navMarker;
+          
+          if (statusMatch && markerMatch) {
+            if (navStatus === 'PASS') {
+              filteredPass++;
+            } else {
+              filteredFail++;
+            }
+            filteredTotal++;
+          }
+        });
+        
+        const filteredPassRate = filteredTotal > 0 ? 
+          Math.round((filteredPass / filteredTotal) * 100) : 0;
+        
+        return {
+          pass: filteredPass,
+          fail: filteredFail,
+          total: filteredTotal,
+          passRate: filteredPassRate
+        };
+      }
+
+      function updateSummaryDisplay() {
+        const stats = calculateFilteredStats();
+        
+        // Update the summary cards
+        document.querySelector('#summary .bg-green-50 p:first-child').textContent = stats.pass;
+        document.querySelector('#summary .bg-red-50 p:first-child').textContent = stats.fail;
+        document.querySelector('#summary .bg-gray-50 p:first-child').textContent = stats.total;
+        document.querySelector('#summary .bg-purple-50 p:first-child').textContent = `${stats.passRate}%`;
+        
+        // Only recreate charts if summary is visible
+        if (document.getElementById('summary').style.display === 'block') {
+          // Ensure chart containers exist
+          if (document.getElementById('passFailChart')) {
+            createCharts();
+          }
+        }
+      }
+    </script>
+  </body>
+</html>

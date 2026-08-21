@@ -1,0 +1,15 @@
+include .env
+include .gitignore
+include conftest.py
+include README.md
+include requirements.txt
+include get-pip
+prune .git
+recursive-include .vscode *
+recursive-include Keywords *
+recursive-include Object_Repository *
+recursive-include Profiles *
+recursive-include Screenshots *
+recursive-include Suite *
+recursive-include Test_Cases *
+recursive-include Test_Reports *
